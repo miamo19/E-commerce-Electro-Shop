@@ -1,0 +1,113 @@
+{% extends 'shop/base.html' %}
+
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <form action="" class="card card-sm">
+                <div class="card-body row no-gutters align-items-center">
+                    <div class="col">
+                        <input type="search" placeholder="Enter your products" name="item-name" class="form-control form-control-borderless">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success">Reseach</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        {% for products in product_object %}
+        <div class="col-md-3">
+            <div class="card">
+                <img src="{{ products.image }}" alt="" class="card-img-top" width="380px" height="230px">
+                <div class="card-body">
+                    <div id="aa{{ products.id }}" class="card-title">{{ products.title }}</div>
+                    <div id="price{{ products.id }}" style="color:orange" class="card-text">{{ products.price }}</div>
+                    <a href="{{ products.id }}" class="btn btn-warning">View</a>
+                    <button id="{{ products.id }}" class="btn ted btn-success">Add</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-3 offset-md-4" >
+            <ul class="pagination">
+                {% if product_object.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ product_object.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+                        <li class="page-item active">
+                            <a class="page-link" href="?page={{ product_object.number }}">{{ product_object.number }}</a>
+                        </li>
+                {% if product_object.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ product_object.next_page_number }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %} 
+
+<script type="text/javascript">
+    console.log('just for a test');
+    //condition to check if the local storage has empty or not
+    if(localStorage.getItem('panier')==null){
+        var panier = {};
+    }else{
+        //if localstorage is not empty, it value should  be store in the variable 'panier'
+        panier = JSON.parse(localStorage.getItem('panier'));
+
+    }
+    //showing the number of clicks initiated on product's button in local storage
+    $(document).on('click', '.ted', function(){
+        console.log('add');
+        //item_id variable collect the id of the product clicked 
+        //(in the index.html id shoud be introduce on button like id="products.id")
+        var item_id = this.id.toString();
+        console.log(item_id);
+        //condition to check if the variable item_id is defined.
+        if (panier[item_id] != undefined){
+            quantite = panier[item_id][0] +1;
+            panier[item_id][0] = quantite;
+            panier[item_id][2] += parseFloat(document.getElementById("price"+item_id).innerHTML);
+        //then increment the number of times a product button is click and associate it to it's id
+        }else{
+            quantite = 1;
+            prix = parseFloat(document.getElementById("price"+item_id).innerHTML);
+            nom = document.getElementById("aa"+item_id).innerHTML;
+            panier[item_id] = [quantite, nom, prix];
+            
+        }
+        console.log(panier);
+        //storing the associated id and numbers of clicks to localhost(localstorage)
+        localStorage.setItem('panier', JSON.stringify(panier));
+        //document toget the number of products and sent to base.html basket
+        document.getElementById("panier").innerHTML ="Basket("+ Object.keys(panier).length+")";
+       
+    });
+    AfficherList(panier);
+    function AfficherList(panier){
+        var panierString = " ";
+        panierString += "<h5>This is your List</h5>";
+        var index = 1;
+        
+        for(var x in panier){
+            panierString += index;
+            panierString += document.getElementById("aa"+x).innerHTML + " Qty: "+ panier[x][0] + "</br>";
+            index +=1; 
+        }
+        panierString += "<a href='checkout' class='btn btn-primary'>Checkout</a> ";
+        $('[data-toggle="popover"]').popover();
+        document.getElementById('panier').setAttribute('data-content', panierString);
+    }
+</script>
+{% endblock %}
+
